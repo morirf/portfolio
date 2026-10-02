@@ -1,0 +1,316 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="description" content="Mohammad Riahi-Fard, electrical engineering student in Waterloo, ON. PCB design for power, embedded and drone systems.">
+<title>Mohammad Riahi-Fard</title>
+<!--
+  One-page portfolio. Blocks you should edit are marked EDIT.
+  To show a real board photo or render, replace a project's <svg class="board"> with
+  <img class="board" src="images/your-board.jpg" alt="...">
+  3D viewers: put each board's zipped Altium project in designs/ and point data-project-src at it.
+-->
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Newsreader:ital,opsz,wght@0,6..72,300;0,6..72,400;1,6..72,300&family=Geist:wght@400;500&family=Geist+Mono:wght@400&display=swap">
+<style>
+/* Layout: one narrow centered column on a solder-mask green ground; sections separated by space and a faint rule. */
+:root {
+  color-scheme: dark;
+  --green:  #2F4C3E;   /* page */
+  --deep:   #284235;   /* board placeholders */
+  --white:  #F3F6F2;
+  --soft:   rgba(243, 246, 242, 0.68);
+  --faint:  rgba(243, 246, 242, 0.16);
+  --copper: #D9C9A3;   /* traces, hover */
+
+  --serif: "Newsreader", Georgia, "Times New Roman", serif;
+  --sans:  "Geist", "Segoe UI", system-ui, -apple-system, Arial, sans-serif;
+  --mono:  "Geist Mono", ui-monospace, Consolas, monospace;
+}
+
+* { box-sizing: border-box; }
+html { scroll-behavior: smooth; }
+@media (prefers-reduced-motion: reduce) { html { scroll-behavior: auto; } * { transition: none !important; } }
+body {
+  margin: 0;
+  background: var(--green);
+  color: var(--white);
+  font: 400 16.5px/1.7 var(--sans);
+  padding-inline: clamp(20px, 6vw, 48px);
+  padding-block: 0;
+  -webkit-font-smoothing: antialiased;
+}
+::selection { background: var(--copper); color: var(--green); }
+a { color: inherit; text-decoration: underline; text-decoration-color: var(--faint); text-underline-offset: 4px; transition: text-decoration-color .2s, color .2s; }
+a:hover { text-decoration-color: var(--copper); }
+:focus-visible { outline: 1.5px solid var(--copper); outline-offset: 4px; border-radius: 2px; }
+h1, h2, h3, p { margin: 0; }
+h1, h2 { font-family: var(--serif); font-weight: 300; text-wrap: balance; letter-spacing: -0.015em; }
+
+.col { max-width: 680px; margin: 0 auto; }
+
+.label { font: 400 12px/1.4 var(--mono); letter-spacing: 0.08em; text-transform: uppercase; color: var(--soft); }
+
+/* Top bar */
+.top { display: flex; justify-content: space-between; align-items: center; gap: 16px; padding-block: 32px; }
+.top nav { display: flex; gap: 22px; flex-wrap: wrap; }
+.top nav a { text-decoration: none; font-size: 14px; color: var(--soft); }
+.top nav a:hover { color: var(--white); }
+.mono-name { font: 400 13px/1 var(--mono); letter-spacing: .06em; text-decoration: none; }
+
+/* Intro */
+.intro { padding-block: clamp(64px, 14vw, 140px) clamp(56px, 10vw, 104px); display: flex; flex-direction: column; gap: 28px; }
+.intro h1 { font-size: clamp(2.6rem, 1.6rem + 4.4vw, 4.2rem); line-height: 1.04; }
+.intro h1 em { font-style: italic; color: var(--soft); }
+.intro p { font-size: 18px; color: var(--soft); max-width: 34em; }
+.intro p strong { color: var(--white); font-weight: 400; }
+.now { display: flex; align-items: center; gap: 10px; }
+.now::before { content: ""; width: 7px; height: 7px; border-radius: 50%; background: var(--copper); box-shadow: 0 0 0 4px rgba(217, 201, 163, .15); }
+
+/* Sections */
+section { border-top: 1px solid var(--faint); padding-block: 56px 72px; display: flex; flex-direction: column; gap: 36px; scroll-margin-top: 8px; }
+.head { display: flex; justify-content: space-between; align-items: baseline; gap: 16px; flex-wrap: wrap; }
+.head h2 { font-size: clamp(1.9rem, 1.5rem + 1.4vw, 2.4rem); }
+
+/* Projects */
+.projects { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 56px; }
+.project { display: grid; grid-template-columns: 200px 1fr; gap: 28px; align-items: start; }
+.board { width: 100%; max-width: 100%; aspect-ratio: 4 / 3; display: block; border-radius: 6px; background: var(--deep); object-fit: cover; }
+/* Altium's embed.js sets inline border and size styles, hence !important. */
+.board.altium-ecad-viewer { overflow: hidden; height: auto !important; max-width: 100% !important; max-height: none !important; border: 1px solid var(--faint) !important; border-radius: 6px !important; }
+.board.altium-ecad-viewer > a { display: none; }
+.board.altium-ecad-viewer iframe { width: 100%; height: 100%; border: 0; display: block; }
+/* The slot holds the grid space; the viewer inside grows over the text when .zoom is set.
+   The viewer is a cross-origin iframe, which hides hover from this page, so .board-hit catches the pointer until the board is zoomed (see script at the end). */
+.board-slot { position: relative; aspect-ratio: 4 / 3; }
+.board-slot > .board { position: absolute; top: 0; left: 0; z-index: 1; transition: width .35s ease, box-shadow .35s ease; }
+.board-hit { position: absolute; inset: 0; z-index: 2; cursor: zoom-in; }
+.board-slot.zoom > .board { width: 520px; max-width: none !important; z-index: 5; box-shadow: 0 18px 50px rgba(0, 0, 0, .45); }
+.board-slot.zoom > .board-hit { display: none; }
+/* Selectors stay unscoped so they reach the <use> copies; hover passes through an inherited variable. */
+.edge  { fill: none; stroke: var(--faint); stroke-width: 1; }
+.trace { fill: none; stroke: var(--copper); stroke-width: 1.2; stroke-linecap: round; stroke-linejoin: round; opacity: var(--glow, .55); transition: opacity .3s; }
+.pad   { fill: var(--copper); opacity: .7; }
+.hole  { fill: var(--green); stroke: var(--faint); }
+.ic    { fill: rgba(0,0,0,.25); stroke: var(--faint); }
+.project:hover .board { --glow: .95; }
+.project-text { display: flex; flex-direction: column; gap: 10px; }
+.project h3 { font: 500 18px/1.35 var(--sans); }
+.project p { color: var(--soft); font-size: 15.5px; max-width: 52ch; }
+.spec { font: 400 12.5px/1.6 var(--mono); color: var(--soft); display: flex; flex-wrap: wrap; gap: 4px 18px; margin-top: 4px; }
+.spec span { white-space: nowrap; }
+.spec b { font-weight: 400; color: var(--copper); margin-right: 6px; }
+
+/* Experience */
+.rows { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 28px; }
+.row { display: grid; grid-template-columns: 130px 1fr; gap: 28px; }
+.row .when { font: 400 13px/1.7 var(--mono); color: var(--soft); font-variant-numeric: tabular-nums; }
+.row h3 { font: 500 17px/1.4 var(--sans); }
+.row p { color: var(--soft); font-size: 15.5px; }
+
+/* Skills */
+.skills { display: grid; grid-template-columns: repeat(3, 1fr); gap: 28px; }
+.skills div { display: flex; flex-direction: column; gap: 10px; }
+.skills p { color: var(--white); font-size: 15.5px; line-height: 1.8; }
+
+/* Contact */
+.contact h2 { font-size: clamp(2rem, 1.4rem + 2.6vw, 3rem); line-height: 1.1; }
+.contact .mail { font: 300 clamp(1.3rem, 1rem + 1.4vw, 1.7rem)/1.3 var(--serif); font-style: italic; overflow-wrap: anywhere; }
+.links { display: flex; gap: 24px; flex-wrap: wrap; font-size: 15px; }
+footer { padding-block: 0 40px; display: flex; justify-content: space-between; gap: 16px; flex-wrap: wrap; }
+
+@media (max-width: 600px) {
+  .top nav { display: none; }
+  .project { grid-template-columns: 1fr; gap: 18px; }
+  .board, .board.altium-ecad-viewer, .board-slot { max-width: 320px !important; }
+  .row { grid-template-columns: 1fr; gap: 4px; }
+  .skills { grid-template-columns: 1fr; gap: 22px; }
+}
+</style>
+
+</head>
+<body>
+<!-- Board placeholder: a simple outline with copper traces. Each project reuses it. -->
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <symbol id="pcb-a" viewBox="0 0 200 150">
+    <rect class="edge" x="14" y="14" width="172" height="122" rx="6"/>
+    <circle class="hole" cx="26" cy="26" r="4"/><circle class="hole" cx="174" cy="26" r="4"/><circle class="hole" cx="26" cy="124" r="4"/><circle class="hole" cx="174" cy="124" r="4"/>
+    <rect class="ic" x="82" y="54" width="36" height="36" rx="2"/>
+    <path class="trace" d="M50 40h32v14M118 72h30v-26h14M100 90v20h-40M60 110v-30H40M118 62h20M148 100h14v14"/>
+    <circle class="pad" cx="50" cy="40" r="3"/><circle class="pad" cx="162" cy="46" r="3"/><circle class="pad" cx="40" cy="80" r="3"/><circle class="pad" cx="162" cy="114" r="3"/><circle class="pad" cx="138" cy="62" r="3"/>
+  </symbol>
+  <symbol id="pcb-b" viewBox="0 0 200 150">
+    <rect class="edge" x="14" y="14" width="172" height="122" rx="6"/>
+    <circle class="hole" cx="26" cy="26" r="4"/><circle class="hole" cx="174" cy="124" r="4"/>
+    <rect class="ic" x="40" y="44" width="28" height="20" rx="2"/><rect class="ic" x="120" y="80" width="44" height="28" rx="2"/>
+    <path class="trace" d="M68 54h26v40h26M54 64v40h20M164 94h10M94 54V34h56v46M40 54H28"/>
+    <circle class="pad" cx="74" cy="104" r="3"/><circle class="pad" cx="174" cy="94" r="3"/><circle class="pad" cx="150" cy="34" r="3"/><circle class="pad" cx="28" cy="54" r="3"/>
+  </symbol>
+</svg>
+
+<div class="col">
+
+  <header class="top">
+    <a class="mono-name" href="#top">M. RIAHI-FARD</a>
+    <nav aria-label="Sections">
+      <a href="#projects">Projects</a>
+      <a href="#experience">Experience</a>
+      <a href="#skills">Skills</a>
+      <a href="#contact">Contact</a>
+    </nav>
+  </header>
+
+  <main id="top">
+    <!-- ===== EDIT: intro ===== -->
+    <div class="intro">
+      <span class="label now">Electrical Engineering · Waterloo, ON</span>
+      <h1>Mohammad Riahi-Fard <em>designs circuit boards.</em></h1>
+      <p>I'm an electrical engineering student focused on <strong>PCB design</strong> for power electronics, embedded systems, and drones. I like taking a board from schematic to layout to bring-up on the bench.</p>
+    </div>
+
+    <!-- ===== EDIT: projects. Fields in .spec are optional; add layer count, board size, etc. as you like ===== -->
+    <section id="projects">
+      <div class="head"><h2>Projects</h2><span class="label">Mostly PCBs</span></div>
+      <ul class="projects">
+        <li class="project">
+          <div class="board-slot">
+            <div class="board altium-ecad-viewer" data-project-src="designs/adsb.zip" data-enabled-views="3d" data-active-view="3d" data-hide-project-src>
+              <a href="https://www.altium365.com/viewer/">PCB File Viewer by Altium</a>
+            </div>
+          </div>
+          <div class="project-text">
+            <h3>ADS-B Reciever</h3>
+            <p>A custom ADS-B reciever with RF frontend and STM32.</p>
+            <div class="spec"><span><b>Type</b>Power</span><span><b>Tool</b>Altium</span></div>
+          </div>
+        </li>
+        <li class="project">
+          <div class="board-slot">
+            <div class="board altium-ecad-viewer" data-project-src="designs/led-driver.zip" data-enabled-views="3d" data-active-view="3d" data-hide-project-src>
+              <a href="https://www.altium365.com/viewer/">PCB File Viewer by Altium</a>
+            </div>
+          </div>
+          <div class="project-text">
+            <h3>Floodlight LED driver</h3>
+            <p>A driver board for the drone's floodlight, designed and tested with the student drone team.</p>
+            <div class="spec"><span><b>Type</b>Power</span><span><b>Team</b>Drone</span></div>
+          </div>
+        </li>
+        <li class="project">
+          <div class="board-slot">
+            <div class="board altium-ecad-viewer" data-project-src="designs/can-logger.zip" data-enabled-views="3d" data-active-view="3d" data-hide-project-src>
+              <a href="https://www.altium365.com/viewer/">PCB File Viewer by Altium</a>
+            </div>
+          </div>
+          <div class="project-text">
+            <h3>CAN data logger</h3>
+            <p>A board that records traffic on the drone's CAN bus for debugging and flight review.</p>
+            <div class="spec"><span><b>Type</b>Embedded</span><span><b>Bus</b>CAN</span></div>
+          </div>
+        </li>
+        <li class="project">
+          <div class="board-slot">
+            <div class="board altium-ecad-viewer" data-project-src="designs/pi-hat.zip" data-enabled-views="3d" data-active-view="3d" data-hide-project-src>
+              <a href="https://www.altium365.com/viewer/">PCB File Viewer by Altium</a>
+            </div>
+          </div>
+          <div class="project-text">
+            <h3>Raspberry Pi HAT interface</h3>
+            <p>An add-on board connecting a Raspberry Pi to the drone's onboard electronics.</p>
+            <div class="spec"><span><b>Type</b>Interface</span><span><b>Host</b>Raspberry Pi</span></div>
+          </div>
+        </li>
+        <li class="project">
+          <svg class="board" viewBox="0 0 200 150" role="img" aria-label="Board placeholder"><use href="#pcb-a"/></svg>
+          <div class="project-text">
+            <h3>Smart irrigation controller</h3>
+            <p>An STM32 Nucleo system that reads I2C soil sensors and switches a water pump through a relay, with real-time monitoring.</p>
+            <div class="spec"><span><b>Type</b>Embedded</span><span><b>MCU</b>STM32</span><span><b>Code</b>C/C++</span></div>
+          </div>
+        </li>
+      </ul>
+    </section>
+
+    <!-- ===== EDIT: experience (newest first). Replace the placeholder title and dates with your own ===== -->
+    <section id="experience">
+      <div class="head"><h2>Experience</h2><a class="label" href="resume.pdf">Resume (PDF)</a></div>
+      <ul class="rows">
+        <li class="row">
+          <span class="when">2025 – Now</span>
+          <div>
+            <h3>Electrical Team Member, student drone team</h3>
+            <p>Designs and tests custom boards, reviews layouts, and helps onboard new members.</p>
+          </div>
+        </li>
+        <li class="row">
+          <span class="when">20XX – 20XX</span>
+          <div>
+            <h3>Your next role</h3>
+            <p>One sentence on what you did there.</p>
+          </div>
+        </li>
+      </ul>
+    </section>
+
+    <!-- ===== EDIT: skills ===== -->
+    <section id="skills">
+      <div class="head"><h2>Skills</h2></div>
+      <div class="skills">
+        <div><span class="label">Hardware</span><p>PCB design<br>Power electronics<br>Board bring-up</p></div>
+        <div><span class="label">Embedded</span><p>STM32<br>C/C++<br>I2C, CAN</p></div>
+        <div><span class="label">Tools</span><p>Altium Designer<br>Gnuplot<br>Bench equipment</p></div>
+      </div>
+    </section>
+
+    <!-- ===== EDIT: contact ===== -->
+    <section id="contact" class="contact">
+      <h2>Say hello.</h2>
+      <a class="mail" href="mailto:m.riahi.f@gmail.com">m.riahi.f@gmail.com</a>
+      <div class="links">
+        <a href="https://linkedin.com/in/your-handle">LinkedIn</a>
+        <a href="https://github.com/your-handle">GitHub</a>
+        <a href="resume.pdf">Resume</a>
+      </div>
+    </section>
+  </main>
+
+  <footer class="label">
+    <span>Waterloo, ON</span>
+    <span>© 2026 Mohammad Riahi-Fard</span>
+  </footer>
+
+</div>
+
+<!-- Altium's viewer needs full URLs, so resolve relative design paths against this page first. -->
+<script>
+document.querySelectorAll('.altium-ecad-viewer[data-project-src]').forEach(el => {
+  el.dataset.projectSrc = new URL(el.dataset.projectSrc, location.href).href;
+});
+
+// Hover zoom for the 3D viewers (desktop only). Any mousemove this page sees means the pointer is
+// outside the viewer iframe, so a move outside the zoomed board's box shrinks it again.
+if (matchMedia('(hover: hover) and (min-width: 601px)').matches) {
+  document.querySelectorAll('.board-slot').forEach(slot => {
+    const hit = document.createElement('span');
+    hit.className = 'board-hit';
+    hit.setAttribute('aria-hidden', 'true');
+    slot.appendChild(hit);
+    let timer;
+    hit.addEventListener('mouseenter', () => { timer = setTimeout(() => slot.classList.add('zoom'), 150); });
+    hit.addEventListener('mouseleave', () => clearTimeout(timer));
+    hit.addEventListener('click', () => { clearTimeout(timer); slot.classList.add('zoom'); });
+  });
+  document.addEventListener('mousemove', e => {
+    document.querySelectorAll('.board-slot.zoom').forEach(slot => {
+      const r = slot.querySelector('.board').getBoundingClientRect();
+      if (e.clientX < r.left || e.clientX > r.right || e.clientY < r.top || e.clientY > r.bottom) slot.classList.remove('zoom');
+    });
+  });
+}
+</script>
+<script src="https://viewer.altium.com/client/static/js/embed.js"></script>
+
+</body>
+</html>
